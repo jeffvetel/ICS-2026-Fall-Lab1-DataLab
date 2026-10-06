@@ -1,7 +1,7 @@
 /* 
  * CS:APP Data Lab 
  * 
- * <Please put your name and userid here>
+ * <Please put your name: 邱皓哲 and userid: 24307130014 here>
  * 
  * bits.c - Source file with your solutions to the Lab.
  *          This is the file you will hand in to your instructor.
@@ -146,7 +146,8 @@ NOTES:
  *   Rating: 1
  */
 int signMask(void) {
-  return 1;
+  /*将一个末位1移至最高位即可*/
+  return 1 << 31;
 }
 
 // P2
@@ -158,7 +159,8 @@ int signMask(void) {
  *   Rating: 2
  */
 int bitXor(int x, int y) {
-	return 2;
+  /*注意到x ^ y = (x & ~y) | (~x & y)，然后将|重写为用~与&表示的形式*/
+	return ~( (~(x & ~y)) & (~(~x & y)) );
 }
 
 // P3
@@ -170,7 +172,9 @@ int bitXor(int x, int y) {
  *   Rating: 3
  */
 int negativePart(int x){
-  return 3;
+  /*先判断x的符号，得到isNegative=0xFFFFFFFF或0x00000000；在&作用下，非负数直接输出0，而负数将输出后面的-x*/
+  int isNegative = x >> 31;
+  return isNegative & (~x + 1);
 }
 
 
@@ -185,7 +189,11 @@ int negativePart(int x){
  *   Rating: 4
  */
 int copyByteWithin(int x, int src, int dst) {
-  return 4;
+  /*取出src对应的byte，然后清除x中dst对应原有byte，并使用或运算与src对应byte（移位后）合并*/
+  int srcshift = src << 3;
+  int dstshift = dst << 3;
+  int srcbyte = (x >> srcshift) & 0xFF;
+  return (x & ~(0xFF << dstshift)) | (srcbyte << dstshift);
 }
 
 // P5
@@ -198,7 +206,9 @@ int copyByteWithin(int x, int src, int dst) {
  *   Rating: 4
  */
 int logicalShift(int x, int n) {
-  return 5;
+  /*只需要解决负数算数右移的高位添1问题；利用高位添1构造一个前n位为0、其余为1的mask，与算术右移结果&合并即可*/
+  int logicalmask = ~ ( ((1 << 31) >> n) << 1);
+  return (x >> n) & logicalmask;
 }
 
 // P6
@@ -210,7 +220,11 @@ int logicalShift(int x, int n) {
  *   Rating: 4
  */
 int swapNibblePairs(int x) {
-  return 6;
+  /*构造mask=0x0F0F0F0F，一次性将x的每个byte的后四位取出并左移，然后取出全部前四位并右移，合并得到结果*/
+  int mask_0 = 0x0F;
+  int mask_1 = (mask_0 << 8) | mask_0;
+  int mask = (mask_1 << 16) | mask_1;
+  return ((x & mask) << 4) | ((x >> 4) & mask); /*x >> 4算术右移的添1会被mask抹去*/
 }
 
 // P7
@@ -223,7 +237,12 @@ int swapNibblePairs(int x) {
  *   Rating: 4
  */
 int secondLowestZeroBit(int x) {
-  return 7;
+  /*初步想法：只需要得到最低含0位对应的mask即可，将x与这个mask作|运算之后再做一次就得到了所需的结果；
+   *进一步,注意到x & (~x + 1)得到了x最低含1位对应的mask，故而~x & (x + 1)即得到这个mask*/
+  int mask_1 = ~x & (x + 1);
+  int x_1 = x | mask_1;
+  int mask_2 = ~x_1 & (x_1 + 1);
+  return mask_2;
 }
 
 // P8
